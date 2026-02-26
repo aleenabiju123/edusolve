@@ -37,7 +37,10 @@ import {
   Grow,
   Tooltip,
   LinearProgress,
-  SwipeableDrawer
+  SwipeableDrawer,
+  Badge,
+  ListItemAvatar,
+  ListItemButton
 } from '@mui/material';
 import {
   ExitToApp as LogoutIcon,
@@ -55,61 +58,71 @@ import {
   Shield as ShieldIcon,
   Close as CloseIcon,
   DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon
+  LightMode as LightModeIcon,
+  Person as PersonIcon,
+  LockReset as LockResetIcon,
+  Login as LoginIcon,
+  Visibility,
+  VisibilityOff,
+  ExpandMore as ExpandMoreIcon,
+  CheckCircleOutline as SuccessIcon
 } from '@mui/icons-material';
+import AdminAnalyticsSection from './AdminAnalyticsSection';
+import AdminPerformanceSection from './AdminPerformanceSection';
+import AdminLoginHistorySection from './AdminLoginHistorySection';
 
 const sideDrawerWidth = 270;
 const actionDrawerWidth = 380;
 
 // ─── Theme Palettes ─────────────────────────────
 const darkPalette = {
-  bgPrimary: '#0F0F1A',
-  bgSecondary: '#1A1A2E',
-  bgTertiary: '#16213E',
+  bgPrimary: '#121212',
+  bgSecondary: '#1E1E1E',
+  bgTertiary: '#181818',
   bgCard: 'rgba(255,255,255,0.03)',
   glassBg: 'rgba(255,255,255,0.05)',
   glassBorder: 'rgba(255,255,255,0.08)',
-  sidebarBg: ['#1A1A2E', '#0F0F1A'],
-  appBarBg: 'rgba(15,15,26,0.75)',
-  tableHeaderBg: 'rgba(15,15,26,0.95)',
+  sidebarBg: ['#1E1E1E', '#121212'],
+  appBarBg: 'rgba(18,18,18,0.75)',
+  tableHeaderBg: 'rgba(18,18,18,0.95)',
   inputBg: 'rgba(255,255,255,0.03)',
   hoverBg: 'rgba(255,255,255,0.03)',
-  selectedBg: 'rgba(108,99,255,0.08)',
-  selectedHoverBg: 'rgba(108,99,255,0.12)',
-  accent: '#6C63FF',
-  accentLight: '#8B83FF',
-  cyan: '#00D9FF',
-  emerald: '#00E676',
-  amber: '#FFB300',
-  rose: '#FF5252',
-  textPrimary: '#EAEAFF',
-  textSecondary: 'rgba(255,255,255,0.55)',
-  textMuted: 'rgba(255,255,255,0.3)',
+  selectedBg: 'rgba(197,160,89,0.08)',
+  selectedHoverBg: 'rgba(197,160,89,0.12)',
+  accent: '#C5A059',
+  accentLight: '#D4B87E',
+  cyan: '#D4B87E',
+  emerald: '#81C784',
+  amber: '#FFD54F',
+  rose: '#E57373',
+  textPrimary: '#FFFDF5',
+  textSecondary: 'rgba(255,252,245,0.6)',
+  textMuted: 'rgba(255,252,245,0.3)',
 };
 
 const lightPalette = {
-  bgPrimary: '#F5F7FB',
+  bgPrimary: '#FFFDF5',
   bgSecondary: '#FFFFFF',
-  bgTertiary: '#EEF1F8',
+  bgTertiary: '#FFFDF5',
   bgCard: 'rgba(0,0,0,0.02)',
-  glassBg: 'rgba(255,255,255,0.85)',
-  glassBorder: 'rgba(0,0,0,0.08)',
-  sidebarBg: ['#FFFFFF', '#F8F9FD'],
-  appBarBg: 'rgba(255,255,255,0.85)',
-  tableHeaderBg: '#F8F9FD',
+  glassBg: 'rgba(255,253,245,0.85)',
+  glassBorder: 'rgba(197,160,89,0.15)',
+  sidebarBg: ['#FFFFFF', '#FFFDF5'],
+  appBarBg: 'rgba(255,253,245,0.85)',
+  tableHeaderBg: '#FFFDF5',
   inputBg: 'rgba(0,0,0,0.02)',
-  hoverBg: 'rgba(0,0,0,0.03)',
-  selectedBg: 'rgba(108,99,255,0.06)',
-  selectedHoverBg: 'rgba(108,99,255,0.10)',
-  accent: '#5B52E0',
-  accentLight: '#7B73FF',
-  cyan: '#0097B2',
-  emerald: '#00A854',
-  amber: '#E09800',
-  rose: '#E53935',
-  textPrimary: '#1A1A2E',
-  textSecondary: 'rgba(0,0,0,0.55)',
-  textMuted: 'rgba(0,0,0,0.35)',
+  hoverBg: 'rgba(197,160,89,0.05)',
+  selectedBg: 'rgba(197,160,89,0.1)',
+  selectedHoverBg: 'rgba(197,160,89,0.15)',
+  accent: '#4A3E31',
+  accentLight: '#6B5E4F',
+  cyan: '#C5A059',
+  emerald: '#2E7D32',
+  amber: '#F57F17',
+  rose: '#C62828',
+  textPrimary: '#4A3E31',
+  textSecondary: '#6B5E4F',
+  textMuted: '#A89E94',
 };
 
 export default function AdminDashboard() {
@@ -117,7 +130,12 @@ export default function AdminDashboard() {
   const location = useLocation();
 
   // Theme state
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
   const c = isDark ? darkPalette : lightPalette;
 
   const glassCard = useMemo(() => ({
@@ -150,6 +168,42 @@ export default function AdminDashboard() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [notifAnchorEl, setNotifAnchorEl] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [showPwForm, setShowPwForm] = useState(false);
+  const [pwData, setPwData] = useState({ current: '', newPw: '', confirm: '' });
+  const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [readNotifIds, setReadNotifIds] = useState(() => {
+    return JSON.parse(localStorage.getItem(`readNotifs_${adminId}`) || '[]');
+  });
+
+  // Dynamic Notifications Logic
+  const notifications = useMemo(() => {
+    return complaints.filter(c => {
+      if (adminDepartment === 'General') {
+        // General Admin sees all Registered OR updates from Sub-Admins
+        return c.status === 'Registered' || (c.subAdminNotes && (c.status === 'Pending' || c.status === 'Resolved'));
+      } else {
+        // Sub-Admins see only Registered in their department or category
+        return c.status === 'Registered' && (c.department === adminDepartment || c.category === adminDepartment);
+      }
+    }).map(c => ({
+      id: c._id,
+      title: c.status === 'Registered' ? 'New Complaint Assigned' : 'Sub-Admin Update',
+      message: `${c.studentName} - ${c.category}: ${c.description}`,
+      time: new Date(c.registeredAt).toLocaleDateString(),
+      unread: !readNotifIds.includes(c._id),
+      type: c.status === 'Registered' ? 'complaint' : 'resolved',
+      rawDate: c.registeredAt
+    })).sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+  }, [complaints, adminDepartment, readNotifIds]);
+
+  useEffect(() => {
+    localStorage.setItem(`readNotifs_${adminId}`, JSON.stringify(readNotifIds));
+  }, [readNotifIds, adminId]);
 
   useEffect(() => { fetchComplaints(); }, []);
 
@@ -175,7 +229,20 @@ export default function AdminDashboard() {
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
   const handleProfileClick = (e) => setAnchorEl(e.currentTarget);
   const handleProfileClose = () => setAnchorEl(null);
+  const handleNotifClick = (e) => setNotifAnchorEl(e.currentTarget);
+  const handleNotifClose = () => setNotifAnchorEl(null);
+  const handleMarkAllRead = () => {
+    const allIds = notifications.map(n => n.id);
+    const newReadIds = Array.from(new Set([...readNotifIds, ...allIds]));
+    setReadNotifIds(newReadIds);
+    localStorage.setItem(`readNotifs_${adminId}`, JSON.stringify(newReadIds));
+  };
+  useEffect(() => {
+    localStorage.setItem(`readNotifs_${adminId}`, JSON.stringify(readNotifIds));
+  }, [readNotifIds, adminId]);
+  const unreadCount = notifications.filter(n => n.unread).length;
   const open = Boolean(anchorEl);
+  const notifOpen = Boolean(notifAnchorEl);
 
   const handleSelectComplaint = (complaint) => {
     setSelectedComplaint(complaint);
@@ -222,6 +289,31 @@ export default function AdminDashboard() {
     navigate('/');
   };
 
+  const handlePasswordChange = async () => {
+    setPwError('');
+    if (!pwData.current) return setPwError('Current password is required.');
+    if (pwData.newPw.length < 6) return setPwError('New password must be at least 6 characters.');
+    if (pwData.newPw !== pwData.confirm) return setPwError('Passwords do not match.');
+    setPwLoading(true);
+    try {
+      const response = await axios.put(
+        `http://localhost:2000/api/users/change-password`,
+        { email: adminEmail, currentPassword: pwData.current, newPassword: pwData.newPw }
+      );
+      if (response.data.success) {
+        setPwSuccess(true);
+        setPwData({ current: '', newPw: '', confirm: '' });
+        setTimeout(() => { setShowPwForm(false); setPwSuccess(false); }, 2500);
+      } else {
+        setPwError(response.data.message || 'Failed to update password.');
+      }
+    } catch (err) {
+      setPwError(err.response?.data?.message || 'Server error. Please try again.');
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Registered': return c.amber;
@@ -241,7 +333,7 @@ export default function AdminDashboard() {
 
   const totalComplaints = complaints.length;
   const registeredCount = complaints.filter(x => x.status === 'Registered').length;
-  const pendingCount = complaints.filter(x => x.status === 'Pending').length;
+  const pendingCount = complaints.filter(x => x.status === 'Pending' || x.status === 'In Progress').length;
   const resolvedCount = complaints.filter(x => x.status === 'Resolved').length;
   const resolutionRate = totalComplaints > 0 ? Math.round((resolvedCount / totalComplaints) * 100) : 0;
 
@@ -323,15 +415,21 @@ export default function AdminDashboard() {
       <Typography variant="caption" sx={{ px: 3, mb: 1, color: c.textMuted, fontWeight: 800, letterSpacing: 1.5, fontSize: 9 }}>NAVIGATION</Typography>
       <List sx={{ px: 1.5 }}>
         {[
-          { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
-          { text: 'Complaints', icon: <AssignmentIcon />, path: '/admin' },
-          { text: 'Analytics', icon: <AssessmentIcon />, path: '/admin/analytics' },
-          { text: 'Performance', icon: <TrendingUpIcon />, path: '/admin/performance' },
+          { id: 'dashboard', text: 'Dashboard', icon: <DashboardIcon /> },
+          { id: 'complaints', text: 'Complaints', icon: <AssignmentIcon /> },
+          { id: 'analytics', text: 'Analytics', icon: <AssessmentIcon /> },
+          { id: 'performance', text: 'Performance', icon: <TrendingUpIcon /> },
+          ...(adminDepartment === 'General' ? [{ id: 'loginHistory', text: 'Login Pulse', icon: <LoginIcon /> }] : []),
+          { id: 'profile', text: 'My Profile', icon: <PersonIcon /> },
         ].map((item) => {
-          const active = location.pathname === item.path;
+          const active = activeTab === item.id;
           return (
-            <ListItem button key={item.text} selected={active}
-              onClick={() => navigate(item.path)}
+            <ListItem button key={item.id} selected={active}
+              onClick={() => {
+                setActiveTab(item.id);
+                if (item.id === 'complaints') setFilter('all');
+                if (mobileOpen) setMobileOpen(false);
+              }}
               sx={{
                 borderRadius: 2.5, mb: 0.5, py: 1.2, px: 2, transition: 'all 0.2s',
                 position: 'relative',
@@ -435,7 +533,7 @@ export default function AdminDashboard() {
               sx={selectSx}
             >
               <MenuItem value="Registered">Registered</MenuItem>
-              <MenuItem value="Pending">Pending</MenuItem>
+              <MenuItem value="Pending">In Progress</MenuItem>
               <MenuItem value="Resolved">Resolved</MenuItem>
             </Select>
           </FormControl>
@@ -527,8 +625,17 @@ export default function AdminDashboard() {
               </IconButton>
             </Tooltip>
             <Tooltip title="Notifications">
-              <IconButton sx={{ color: c.textSecondary, '&:hover': { color: c.cyan } }}>
-                <NotifIcon />
+              <IconButton
+                onClick={handleNotifClick}
+                sx={{
+                  color: c.textSecondary,
+                  '&:hover': { color: c.cyan },
+                  transition: '0.3s'
+                }}
+              >
+                <Badge badgeContent={unreadCount} color="error" sx={{ '& .MuiBadge-badge': { fontWeight: 900, fontSize: 10, bgcolor: c.rose } }}>
+                  <NotifIcon />
+                </Badge>
               </IconButton>
             </Tooltip>
             <Tooltip title="Account">
@@ -546,6 +653,82 @@ export default function AdminDashboard() {
           </Box>
         </Toolbar>
       </AppBar>
+
+      {/* ── Notifications Popover ── */}
+      <Popover
+        open={notifOpen}
+        anchorEl={notifAnchorEl}
+        onClose={handleNotifClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: {
+            mt: 1.5,
+            width: 320,
+            borderRadius: 4,
+            overflow: 'hidden',
+            bgcolor: isDark ? c.bgSecondary : '#FFFFFF',
+            border: `1px solid ${c.glassBorder}`,
+            boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(0,0,0,0.12)',
+          }
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${c.glassBorder}` }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: c.textPrimary }}>Notifications</Typography>
+          <Button size="small" onClick={handleMarkAllRead} sx={{ fontSize: 11, fontWeight: 700, color: c.cyan, textTransform: 'none' }}>
+            Mark all read
+          </Button>
+        </Box>
+        <List sx={{ py: 0, maxHeight: 400, overflowY: 'auto' }}>
+          {notifications.length === 0 ? (
+            <Box sx={{ py: 6, textAlign: 'center', opacity: 0.6 }}>
+              <NotifIcon sx={{ fontSize: 40, mb: 1, color: c.textMuted }} />
+              <Typography variant="body2" sx={{ color: c.textMuted, fontWeight: 600 }}>No new notifications</Typography>
+            </Box>
+          ) : notifications.map((n) => (
+            <ListItemButton key={n.id} sx={{
+              py: 1.5, px: 2,
+              borderBottom: `1px solid ${c.glassBorder}`,
+              bgcolor: n.unread ? (isDark ? 'rgba(197, 160, 89, 0.03)' : 'rgba(197, 160, 89, 0.05)') : 'transparent'
+            }}>
+              <ListItemAvatar sx={{ minWidth: 48 }}>
+                <Avatar sx={{
+                  width: 36, height: 36,
+                  bgcolor: n.unread ? c.accent : c.inputBg,
+                  color: n.unread ? 'white' : c.textMuted
+                }}>
+                  {n.type === 'complaint' && <AssignmentIcon sx={{ fontSize: 18 }} />}
+                  {n.type === 'system' && <DashboardIcon sx={{ fontSize: 18 }} />}
+                  {n.type === 'resolved' && <CheckCircleIcon sx={{ fontSize: 18 }} />}
+                  {n.type === 'alert' && <SpeedIcon sx={{ fontSize: 18 }} />}
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" sx={{ fontWeight: n.unread ? 800 : 600, color: c.textPrimary, fontSize: 13 }}>{n.title}</Typography>
+                    <Typography variant="caption" sx={{ color: c.textMuted, fontSize: 10 }}>{n.time}</Typography>
+                  </Box>
+                }
+                secondary={
+                  <Typography variant="caption" sx={{
+                    color: c.textSecondary,
+                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    lineHeight: 1.4, mt: 0.3
+                  }}>
+                    {n.message}
+                  </Typography>
+                }
+              />
+            </ListItemButton>
+          ))}
+        </List>
+        <Box sx={{ p: 1.5, textAlign: 'center', borderTop: `1px solid ${c.glassBorder}` }}>
+          <Button fullWidth size="small" sx={{ color: c.textSecondary, fontSize: 11, fontWeight: 700, textTransform: 'none' }}>
+            View Notification Center
+          </Button>
+        </Box>
+      </Popover>
 
       {/* ── Profile Popover ── */}
       <Popover open={open} anchorEl={anchorEl} onClose={handleProfileClose}
@@ -630,159 +813,294 @@ export default function AdminDashboard() {
         transition: 'margin-right 0.3s ease',
       }}>
 
-        {/* ── Stats Cards ── */}
-        <Grow in={true} timeout={600}>
-          <Grid container spacing={2.5} sx={{ mb: 4 }}>
-            {[
-              { label: 'Total Complaints', val: totalComplaints, gradient: `${c.accent}18`, iconBg: `linear-gradient(135deg, ${c.accent}, ${c.accentLight})`, icon: <AssignmentIcon sx={{ color: 'white', fontSize: 22 }} />, accent: c.accent, sub: 'All time records' },
-              { label: 'Awaiting Action', val: registeredCount, gradient: `${c.amber}15`, iconBg: `linear-gradient(135deg, ${c.amber}, #FF8F00)`, icon: <SpeedIcon sx={{ color: 'white', fontSize: 22 }} />, accent: c.amber, sub: 'Needs attention' },
-              { label: 'In Progress', val: pendingCount, gradient: `${c.cyan}15`, iconBg: `linear-gradient(135deg, ${c.cyan}, #0091EA)`, icon: <PendingIcon sx={{ color: 'white', fontSize: 22 }} />, accent: c.cyan, sub: 'Under review' },
-              { label: 'Resolved', val: resolvedCount, gradient: `${c.emerald}15`, iconBg: `linear-gradient(135deg, ${c.emerald}, #00C853)`, icon: <CheckCircleIcon sx={{ color: 'white', fontSize: 22 }} />, accent: c.emerald, sub: `${resolutionRate}% resolution rate` },
-            ].map((stat, i) => (
-              <Grid key={i} item xs={12} sm={6} md={3}>
-                <Paper elevation={0} sx={{
-                  p: 2.5, borderRadius: 4,
-                  bgcolor: stat.gradient,
-                  border: `1px solid ${c.glassBorder}`,
-                  transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
-                  cursor: 'default', position: 'relative', overflow: 'hidden',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 12px 40px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)'}`, borderColor: `${stat.accent}40` },
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: c.textSecondary, fontWeight: 700, letterSpacing: 0.5, fontSize: 11 }}>{stat.label}</Typography>
-                      <Typography variant="h3" sx={{ fontWeight: 900, color: c.textPrimary, mt: 0.5, lineHeight: 1, fontSize: 32 }}>{stat.val}</Typography>
-                      <Typography variant="caption" sx={{ color: c.textMuted, fontWeight: 600, mt: 0.5, display: 'block', fontSize: 10 }}>{stat.sub}</Typography>
+        {(activeTab === 'dashboard' || activeTab === 'complaints') && (
+          <Grow in={true} timeout={600}>
+            <Grid container spacing={2.5} sx={{ mb: 4 }}>
+              {[
+                { id: 'all', label: 'Total Complaints', val: totalComplaints, gradient: `${c.accent}18`, iconBg: `linear-gradient(135deg, ${c.accent}, ${c.accentLight})`, icon: <AssignmentIcon sx={{ color: 'white', fontSize: 22 }} />, accent: c.accent, sub: 'All time records' },
+                { id: 'Registered', label: 'Awaiting Action', val: registeredCount, gradient: `${c.amber}15`, iconBg: `linear-gradient(135deg, ${c.amber}, #FF8F00)`, icon: <SpeedIcon sx={{ color: 'white', fontSize: 22 }} />, accent: c.amber, sub: 'Needs attention' },
+                { id: 'Pending', label: 'In Progress', val: pendingCount, gradient: `${c.cyan}15`, iconBg: `linear-gradient(135deg, ${c.cyan}, #0091EA)`, icon: <PendingIcon sx={{ color: 'white', fontSize: 22 }} />, accent: c.cyan, sub: 'Under review' },
+                { id: 'Resolved', label: 'Resolved', val: resolvedCount, gradient: `${c.emerald}15`, iconBg: `linear-gradient(135deg, ${c.emerald}, #00C853)`, icon: <CheckCircleIcon sx={{ color: 'white', fontSize: 22 }} />, accent: c.emerald, sub: `${resolutionRate}% resolution rate` },
+              ].map((stat, i) => (
+                <Grid key={i} size={{ xs: 12, sm: 6, md: 3 }}>
+                  <Paper
+                    elevation={0}
+                    onClick={() => {
+                      setFilter(stat.id);
+                      setActiveTab('complaints');
+                    }}
+                    sx={{
+                      p: 2.5, borderRadius: 4,
+                      bgcolor: stat.gradient,
+                      border: `1px solid ${c.glassBorder}`,
+                      transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+                      cursor: 'pointer', position: 'relative', overflow: 'hidden',
+                      '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 12px 40px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)'}`, borderColor: `${stat.accent}40` },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="caption" sx={{ color: c.textSecondary, fontWeight: 700, letterSpacing: 0.5, fontSize: 11 }}>{stat.label}</Typography>
+                        <Typography variant="h3" sx={{ fontWeight: 900, color: c.textPrimary, mt: 0.5, lineHeight: 1, fontSize: 32 }}>{stat.val}</Typography>
+                        <Typography variant="caption" sx={{ color: c.textMuted, fontWeight: 600, mt: 0.5, display: 'block', fontSize: 10 }}>{stat.sub}</Typography>
+                      </Box>
+                      <Box sx={{
+                        width: 44, height: 44, borderRadius: 3, background: stat.iconBg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: `0 6px 20px ${stat.accent}40`,
+                      }}>{stat.icon}</Box>
                     </Box>
-                    <Box sx={{
-                      width: 44, height: 44, borderRadius: 3, background: stat.iconBg,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: `0 6px 20px ${stat.accent}40`,
-                    }}>{stat.icon}</Box>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </Grow>
+        )}
+
+        {activeTab === 'dashboard' && (
+          <Fade in={true} timeout={800}>
+            <Box sx={{ mb: 4, p: 2.5, borderRadius: 3, ...glassCard, bgcolor: `${c.accent}10`, textAlign: 'center' }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: c.textPrimary, mb: 1 }}>Welcome to the Admin Command Center</Typography>
+              <Typography variant="body2" sx={{ color: c.textSecondary }}>Select a summary card above or use the sidebar to manage complaints, view analytics, and track performance.</Typography>
+            </Box>
+          </Fade>
+        )}
+
+        {activeTab === 'dashboard' && (
+          <Fade in={true} timeout={800}>
+            <Box sx={{ mb: 4, p: 2, borderRadius: 3, ...glassCard, display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: c.textSecondary, fontWeight: 700, fontSize: 11 }}>Overall Resolution Rate</Typography>
+                  <Typography variant="caption" sx={{ color: c.emerald, fontWeight: 800, fontSize: 11 }}>{resolutionRate}%</Typography>
+                </Box>
+                <LinearProgress variant="determinate" value={resolutionRate} sx={{
+                  height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                  '& .MuiLinearProgress-bar': { borderRadius: 3, background: `linear-gradient(90deg, ${c.accent}, ${c.cyan}, ${c.emerald})` }
+                }} />
+              </Box>
+            </Box>
+          </Fade>
+        )}
+
+        {activeTab === 'complaints' && (
+          <Fade in={true} timeout={1000}>
+            <Paper elevation={0} sx={{ borderRadius: 4, overflow: 'hidden', ...glassCard }}>
+              {/* Header */}
+              <Box sx={{
+                p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                borderBottom: `1px solid ${c.glassBorder}`,
+              }}>
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: c.textPrimary, lineHeight: 1.2 }}>Complaint Stream</Typography>
+                  <Typography variant="caption" sx={{ color: c.textMuted, fontSize: 11 }}>{complaints.length} total records</Typography>
+                </Box>
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <Select value={filter} onChange={(e) => setFilter(e.target.value)}
+                    sx={{ ...selectSx, fontSize: 12 }}
+                  >
+                    <MenuItem value="all">All Complaints</MenuItem>
+                    <MenuItem value="Registered">Registered</MenuItem>
+                    <MenuItem value="Pending">In Progress</MenuItem>
+                    <MenuItem value="Resolved">Resolved</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+
+              {/* Table */}
+              <TableContainer sx={{ maxHeight: 'calc(100vh - 420px)' }}>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      {['Student', 'Category', 'Date', 'Priority', 'Status'].map(h => (
+                        <TableCell key={h} sx={{
+                          bgcolor: c.tableHeaderBg, color: c.textMuted,
+                          fontWeight: 800, textTransform: 'uppercase', fontSize: 10, letterSpacing: 1, py: 1.5,
+                          borderBottom: `1px solid ${c.glassBorder}`,
+                        }}>{h}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 10, borderBottom: 'none' }}><CircularProgress size={32} sx={{ color: c.accent }} /></TableCell></TableRow>
+                    ) : complaints.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 10, color: c.textMuted, borderBottom: 'none' }}>No complaints found</TableCell></TableRow>
+                    ) : (
+                      complaints.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((complaint) => (
+                        <TableRow key={complaint._id} hover
+                          onClick={() => handleSelectComplaint(complaint)}
+                          selected={selectedComplaint?._id === complaint._id}
+                          sx={{
+                            cursor: 'pointer', transition: 'all 0.2s ease',
+                            '& td': { borderBottom: `1px solid ${c.glassBorder}` },
+                            '&.Mui-selected': { bgcolor: c.selectedBg, '&:hover': { bgcolor: c.selectedHoverBg } },
+                            '&:hover': { bgcolor: c.hoverBg },
+                          }}
+                        >
+                          <TableCell sx={{ py: 2 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: c.textPrimary, fontSize: 13 }}>{complaint.studentName}</Typography>
+                            <Typography variant="caption" sx={{ color: c.textMuted, fontSize: 11 }}>{complaint.email}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={complaint.category} size="small" sx={{
+                              borderRadius: 2, bgcolor: `${c.accent}15`, color: c.accentLight,
+                              border: `1px solid ${c.accent}20`, fontWeight: 700, fontSize: 11, height: 24,
+                            }} />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="caption" sx={{ color: c.textSecondary, fontSize: 12 }}>
+                              {new Date(complaint.registeredAt).toLocaleDateString()}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="caption" sx={{ color: c.textSecondary, fontWeight: 600, fontSize: 12 }}>
+                              {complaint.priority || 'Medium'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: getStatusColor(complaint.status), boxShadow: getStatusGlow(complaint.status) }} />
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: getStatusColor(complaint.status), fontSize: 11 }}>
+                                {complaint.status === 'Pending' ? 'In Progress' : complaint.status}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              <TablePagination
+                rowsPerPageOptions={[10, 25]}
+                component="div" count={complaints.length}
+                rowsPerPage={rowsPerPage} page={page}
+                onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage}
+                sx={{
+                  borderTop: `1px solid ${c.glassBorder}`, color: c.textSecondary,
+                  '& .MuiTablePagination-selectIcon': { color: c.textMuted },
+                  '& .MuiIconButton-root': { color: c.textSecondary },
+                }}
+              />
+            </Paper>
+          </Fade>
+        )}
+
+        {activeTab === 'analytics' && (
+          <Fade in timeout={800}>
+            <Box>
+              <AdminAnalyticsSection complaints={complaints} isDark={isDark} c={c} />
+            </Box>
+          </Fade>
+        )}
+
+        {activeTab === 'performance' && (
+          <Fade in timeout={800}>
+            <Box>
+              <AdminPerformanceSection complaints={complaints} isDark={isDark} c={c} />
+            </Box>
+          </Fade>
+        )}
+
+        {activeTab === 'loginHistory' && adminDepartment === 'General' && (
+          <Box>
+            <AdminLoginHistorySection isDark={isDark} c={c} />
+          </Box>
+        )}
+
+        {activeTab === 'profile' && (
+          <Fade in timeout={800}>
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12, md: 5 }}>
+                <Paper elevation={0} sx={{ ...glassCard, p: 4, textAlign: 'center', background: `linear-gradient(135deg, ${c.accent}15, ${c.accentLight}05)` }}>
+                  <Avatar sx={{
+                    width: 100, height: 100, mx: 'auto', mb: 3,
+                    background: `linear-gradient(135deg, ${c.accent}, ${c.cyan})`,
+                    fontSize: 40, fontWeight: 900, boxShadow: `0 10px 30px ${c.accent}40`,
+                    border: `4px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`
+                  }}>{username.charAt(0)}</Avatar>
+                  <Typography variant="h5" sx={{ fontWeight: 900, color: c.textPrimary, mb: 1 }}>{username}</Typography>
+                  <Typography variant="body2" sx={{ color: c.textSecondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, fontSize: 11 }}>{adminDepartment} Administrator</Typography>
+
+                  <Box sx={{ mt: 4, pt: 4, borderTop: `1px solid ${c.glassBorder}` }}>
+                    <Typography variant="caption" sx={{ color: c.textMuted, display: 'block', mb: 1, fontWeight: 800 }}>QUICK STATS</Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Typography variant="h6" sx={{ color: c.accent, fontWeight: 900 }}>{complaints.length}</Typography>
+                        <Typography variant="caption" sx={{ color: c.textSecondary }}>Handled</Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="h6" sx={{ color: c.emerald, fontWeight: 900 }}>{resolutionRate}%</Typography>
+                        <Typography variant="caption" sx={{ color: c.textSecondary }}>Efficiency</Typography>
+                      </Grid>
+                    </Grid>
                   </Box>
                 </Paper>
               </Grid>
-            ))}
-          </Grid>
-        </Grow>
 
-        {/* ── Resolution Rate Bar ── */}
-        <Fade in={true} timeout={800}>
-          <Box sx={{ mb: 4, p: 2, borderRadius: 3, ...glassCard, display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="caption" sx={{ color: c.textSecondary, fontWeight: 700, fontSize: 11 }}>Overall Resolution Rate</Typography>
-                <Typography variant="caption" sx={{ color: c.emerald, fontWeight: 800, fontSize: 11 }}>{resolutionRate}%</Typography>
-              </Box>
-              <LinearProgress variant="determinate" value={resolutionRate} sx={{
-                height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-                '& .MuiLinearProgress-bar': { borderRadius: 3, background: `linear-gradient(90deg, ${c.accent}, ${c.cyan}, ${c.emerald})` }
-              }} />
-            </Box>
-          </Box>
-        </Fade>
-
-        {/* ── Complaint Stream — FULL WIDTH ── */}
-        <Fade in={true} timeout={1000}>
-          <Paper elevation={0} sx={{ borderRadius: 4, overflow: 'hidden', ...glassCard }}>
-            {/* Header */}
-            <Box sx={{
-              p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              borderBottom: `1px solid ${c.glassBorder}`,
-            }}>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: c.textPrimary, lineHeight: 1.2 }}>Complaint Stream</Typography>
-                <Typography variant="caption" sx={{ color: c.textMuted, fontSize: 11 }}>{complaints.length} total records</Typography>
-              </Box>
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <Select value={filter} onChange={(e) => setFilter(e.target.value)}
-                  sx={{ ...selectSx, fontSize: 12 }}
-                >
-                  <MenuItem value="all">All Complaints</MenuItem>
-                  <MenuItem value="Registered">Registered</MenuItem>
-                  <MenuItem value="Pending">In Progress</MenuItem>
-                  <MenuItem value="Resolved">Resolved</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            {/* Table */}
-            <TableContainer sx={{ maxHeight: 'calc(100vh - 420px)' }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {['Student', 'Category', 'Date', 'Priority', 'Status'].map(h => (
-                      <TableCell key={h} sx={{
-                        bgcolor: c.tableHeaderBg, color: c.textMuted,
-                        fontWeight: 800, textTransform: 'uppercase', fontSize: 10, letterSpacing: 1, py: 1.5,
-                        borderBottom: `1px solid ${c.glassBorder}`,
-                      }}>{h}</TableCell>
+              <Grid size={{ xs: 12, md: 7 }}>
+                <Paper elevation={0} sx={{ ...glassCard, p: 4 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: c.textPrimary, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <ShieldIcon sx={{ color: c.accent }} /> Admin Protocol Data
+                  </Typography>
+                  <Grid container spacing={3}>
+                    {[
+                      { label: 'Admin ID', value: adminId },
+                      { label: 'Department Role', value: adminDepartment },
+                      { label: 'Access Level', value: adminDepartment === 'General' ? 'Super Admin' : 'Departmental Admin' },
+                      { label: 'Official Email', value: adminEmail },
+                    ].map((field) => (
+                      <Grid size={{ xs: 12, sm: 6 }} key={field.label}>
+                        <Box sx={{ p: 2, borderRadius: 3, border: `1px solid ${c.glassBorder}`, bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
+                          <Typography variant="caption" sx={{ color: c.textMuted, fontWeight: 800, textTransform: 'uppercase', fontSize: 10 }}>{field.label}</Typography>
+                          <Typography variant="body2" sx={{ color: c.textPrimary, fontWeight: 700, mt: 0.5 }}>{field.value || '—'}</Typography>
+                        </Box>
+                      </Grid>
                     ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {loading ? (
-                    <TableRow><TableCell colSpan={5} align="center" sx={{ py: 10, borderBottom: 'none' }}><CircularProgress size={32} sx={{ color: c.accent }} /></TableCell></TableRow>
-                  ) : complaints.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} align="center" sx={{ py: 10, color: c.textMuted, borderBottom: 'none' }}>No complaints found</TableCell></TableRow>
-                  ) : (
-                    complaints.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((complaint) => (
-                      <TableRow key={complaint._id} hover
-                        onClick={() => handleSelectComplaint(complaint)}
-                        selected={selectedComplaint?._id === complaint._id}
-                        sx={{
-                          cursor: 'pointer', transition: 'all 0.2s ease',
-                          '& td': { borderBottom: `1px solid ${c.glassBorder}` },
-                          '&.Mui-selected': { bgcolor: c.selectedBg, '&:hover': { bgcolor: c.selectedHoverBg } },
-                          '&:hover': { bgcolor: c.hoverBg },
-                        }}
-                      >
-                        <TableCell sx={{ py: 2 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: c.textPrimary, fontSize: 13 }}>{complaint.studentName}</Typography>
-                          <Typography variant="caption" sx={{ color: c.textMuted, fontSize: 11 }}>{complaint.email}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip label={complaint.category} size="small" sx={{
-                            borderRadius: 2, bgcolor: `${c.accent}15`, color: c.accentLight,
-                            border: `1px solid ${c.accent}20`, fontWeight: 700, fontSize: 11, height: 24,
-                          }} />
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="caption" sx={{ color: c.textSecondary, fontSize: 12 }}>
-                            {new Date(complaint.registeredAt).toLocaleDateString()}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="caption" sx={{ color: c.textSecondary, fontWeight: 600, fontSize: 12 }}>
-                            {complaint.priority || 'Medium'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: getStatusColor(complaint.status), boxShadow: getStatusGlow(complaint.status) }} />
-                            <Typography variant="caption" sx={{ fontWeight: 700, color: getStatusColor(complaint.status), fontSize: 11 }}>{complaint.status}</Typography>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </Grid>
 
-            <TablePagination
-              rowsPerPageOptions={[10, 25]}
-              component="div" count={complaints.length}
-              rowsPerPage={rowsPerPage} page={page}
-              onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage}
-              sx={{
-                borderTop: `1px solid ${c.glassBorder}`, color: c.textSecondary,
-                '& .MuiTablePagination-selectIcon': { color: c.textMuted },
-                '& .MuiIconButton-root': { color: c.textSecondary },
-              }}
-            />
-          </Paper>
-        </Fade>
+                  <Divider sx={{ my: 4, borderColor: c.glassBorder }} />
+
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: c.textPrimary, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LockResetIcon sx={{ color: c.accent }} /> Security Settings
+                  </Typography>
+
+                  {!showPwForm ? (
+                    <Button variant="outlined" startIcon={<LockResetIcon />} onClick={() => setShowPwForm(true)}
+                      sx={{ borderRadius: 2.5, borderColor: c.glassBorder, color: c.textPrimary, textTransform: 'none', fontWeight: 700, px: 3, py: 1.2, '&:hover': { borderColor: c.accent, bgcolor: `${c.accent}08` } }}
+                    >Change Access Password</Button>
+                  ) : (
+                    <Box sx={{ maxWidth: 400 }}>
+                      <Stack spacing={2.5}>
+                        <TextField fullWidth size="small" type={showPw.current ? 'text' : 'password'} label="Current Password" value={pwData.current} onChange={(e) => setPwData({ ...pwData, current: e.target.value })} sx={inputSx}
+                          InputProps={{ endAdornment: <IconButton size="small" onClick={() => setShowPw({ ...showPw, current: !showPw.current })}>{showPw.current ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}</IconButton> }}
+                        />
+                        <TextField fullWidth size="small" type={showPw.newPw ? 'text' : 'password'} label="New Password" value={pwData.newPw} onChange={(e) => setPwData({ ...pwData, newPw: e.target.value })} sx={inputSx}
+                          InputProps={{ endAdornment: <IconButton size="small" onClick={() => setShowPw({ ...showPw, newPw: !showPw.newPw })}>{showPw.newPw ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}</IconButton> }}
+                        />
+                        <TextField fullWidth size="small" type={showPw.confirm ? 'text' : 'password'} label="Confirm New Password" value={pwData.confirm} onChange={(e) => setPwData({ ...pwData, confirm: e.target.value })} sx={inputSx}
+                          InputProps={{ endAdornment: <IconButton size="small" onClick={() => setShowPw({ ...showPw, confirm: !showPw.confirm })}>{showPw.confirm ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}</IconButton> }}
+                        />
+                        {pwError && <Typography variant="caption" sx={{ color: c.rose, fontWeight: 700 }}>{pwError}</Typography>}
+                        {pwSuccess && <Typography variant="caption" sx={{ color: c.emerald, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}><SuccessIcon sx={{ fontSize: 16 }} /> Password updated successfully!</Typography>}
+                        <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
+                          <Button variant="contained" onClick={handlePasswordChange} disabled={pwLoading}
+                            sx={{ flex: 1, borderRadius: 2.5, bgcolor: c.accent, color: 'white', fontWeight: 800, textTransform: 'none', py: 1, boxShadow: `0 8px 20px ${c.accent}40`, '&:hover': { bgcolor: c.accentLight } }}
+                          >{pwLoading ? <CircularProgress size={20} color="inherit" /> : 'Update Password'}</Button>
+                          <Button variant="text" onClick={() => { setShowPwForm(false); setPwError(''); }}
+                            sx={{ color: c.textMuted, fontWeight: 700, textTransform: 'none' }}
+                          >Cancel</Button>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          </Fade>
+        )}
       </Box>
 
       <style>{`

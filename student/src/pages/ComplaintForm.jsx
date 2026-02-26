@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -21,7 +21,8 @@ import {
   Fade,
   Grow,
   Divider,
-  Chip
+  Chip,
+  InputAdornment
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -31,11 +32,32 @@ import {
   ReportProblem as ComplaintIcon,
   EventNote as DateIcon,
   AccessTime as TimeIcon,
-  Category as CategoryIcon
+  Category as CategoryIcon,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon
 } from '@mui/icons-material';
 
 export default function ComplaintForm() {
   const navigate = useNavigate();
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(!isDark);
+
+  const colors = {
+    bg: isDark ? '#121212' : '#FFFDF5',
+    cardBg: isDark ? 'rgba(30, 30, 30, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+    text: isDark ? '#FFFDF5' : '#4A3E31',
+    textSecondary: isDark ? 'rgba(255, 252, 245, 0.6)' : '#6B5E4F',
+    accent: '#C5A059',
+    border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(197, 160, 89, 0.15)',
+    inputBg: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.4)',
+    inputFocusBg: isDark ? 'rgba(255, 255, 255, 0.07)' : 'white'
+  };
+
   const authData = JSON.parse(localStorage.getItem('studentAuthData') || '{}');
   const { studentId, fullName, email: authEmail } = authData;
 
@@ -125,50 +147,68 @@ export default function ComplaintForm() {
   const fieldStyle = {
     "& .MuiOutlinedInput-root": {
       borderRadius: 4,
-      backgroundColor: 'rgba(255, 255, 255, 0.4)',
+      backgroundColor: colors.inputBg,
       transition: 'all 0.3s',
-      "&:hover": { backgroundColor: 'rgba(255, 255, 255, 0.7)' },
-      "&.Mui-focused": { backgroundColor: 'white', boxShadow: '0 8px 20px rgba(74, 62, 49, 0.08)' },
-      "& fieldset": { borderColor: 'rgba(197, 160, 89, 0.2)' },
-      "&:hover fieldset": { borderColor: '#C5A059' },
-      "&.Mui-focused fieldset": { borderColor: '#C5A059', borderWidth: '1px' },
+      color: colors.text,
+      "&:hover": { backgroundColor: colors.inputFocusBg },
+      "&.Mui-focused": { backgroundColor: colors.inputFocusBg, boxShadow: isDark ? '0 8px 20px rgba(0,0,0,0.3)' : '0 8px 20px rgba(74, 62, 49, 0.08)' },
+      "& fieldset": { borderColor: colors.border },
+      "&:hover fieldset": { borderColor: colors.accent },
+      "&.Mui-focused fieldset": { borderColor: colors.accent, borderWidth: '1px' },
     },
-    "& .MuiInputLabel-root": { color: '#6B5E4F', fontWeight: 600 },
-    "& .MuiInputLabel-root.Mui-focused": { color: '#4A3E31' }
+    "& .MuiInputLabel-root": { color: colors.textSecondary, fontWeight: 600 },
+    "& .MuiInputLabel-root.Mui-focused": { color: colors.text }
   };
 
   return (
     <Box sx={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #FFFDF5 0%, #F9F3EA 100%)',
+      bgcolor: colors.bg,
+      background: isDark ? 'none' : 'linear-gradient(135deg, #FFFDF5 0%, #F9F3EA 100%)',
       py: { xs: 4, md: 8 },
-      px: 2
+      px: 2,
+      transition: 'all 0.4s ease'
     }}>
       <Container maxWidth="md">
         <Fade in={true} timeout={800}>
           <Box>
-            <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate('/student')}
-              sx={{
-                mb: 4,
-                color: '#4A3E31',
-                fontWeight: 700,
-                borderRadius: 3,
-                textTransform: 'none',
-                '&:hover': { bgcolor: 'rgba(74, 62, 49, 0.05)' }
-              }}
-            >
-              Return to Dashboard
-            </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+              <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate('/student')}
+                sx={{
+                  color: colors.text,
+                  fontWeight: 700,
+                  borderRadius: 3,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: `${colors.text}08` }
+                }}
+              >
+                Return to Dashboard
+              </Button>
+
+              <Tooltip title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+                <IconButton
+                  onClick={toggleTheme}
+                  sx={{
+                    color: colors.text,
+                    bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                    border: `1px solid ${colors.border}`,
+                    '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)' }
+                  }}
+                >
+                  {isDark ? <LightModeIcon /> : <DarkModeIcon />}
+                </IconButton>
+              </Tooltip>
+            </Box>
 
             <Paper elevation={0} sx={{
               p: { xs: 3, md: 6 },
               borderRadius: 8,
-              bgcolor: 'rgba(255, 255, 255, 0.6)',
+              bgcolor: colors.cardBg,
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(197, 160, 89, 0.15)',
-              boxShadow: '0 40px 100px rgba(0,0,0,0.04)',
+              border: `1px solid ${colors.border}`,
+              boxShadow: isDark ? '0 40px 100px rgba(0,0,0,0.3)' : '0 40px 100px rgba(0,0,0,0.04)',
               position: 'relative',
               overflow: 'hidden'
             }}>
@@ -179,28 +219,28 @@ export default function ComplaintForm() {
                 left: 0,
                 right: 0,
                 height: 6,
-                background: 'linear-gradient(90deg, #4A3E31 0%, #C5A059 100%)'
+                background: `linear-gradient(90deg, ${colors.text} 0%, ${colors.accent} 100%)`
               }} />
 
               <Box sx={{ mb: 6, textAlign: 'center' }}>
                 <Box sx={{
                   width: 60, height: 60,
-                  bgcolor: '#FFFDF5',
+                  bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#FFFDF5',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   mx: 'auto',
                   mb: 2,
-                  boxShadow: '0 10px 25px rgba(197, 160, 89, 0.15)',
-                  border: '1px solid rgba(197, 160, 89, 0.1)'
+                  boxShadow: isDark ? '0 10px 25px rgba(0,0,0,0.3)' : '0 10px 25px rgba(197, 160, 89, 0.15)',
+                  border: `1px solid ${colors.border}`
                 }}>
-                  <ComplaintIcon sx={{ color: '#C5A059', fontSize: 32 }} />
+                  <ComplaintIcon sx={{ color: colors.accent, fontSize: 32 }} />
                 </Box>
-                <Typography variant="h4" fontWeight="900" color="#4A3E31" gutterBottom sx={{ letterSpacing: -1 }}>
+                <Typography variant="h4" fontWeight="900" color={colors.text} gutterBottom sx={{ letterSpacing: -1 }}>
                   Submit Formal Request
                 </Typography>
-                <Typography variant="body1" color="#6B5E4F" sx={{ opacity: 0.8 }}>
+                <Typography variant="body1" color={colors.textSecondary} sx={{ opacity: 0.8 }}>
                   Provide the details below to initiate a resolution protocol.
                 </Typography>
               </Box>
@@ -214,7 +254,9 @@ export default function ComplaintForm() {
                       borderRadius: 4,
                       fontWeight: 600,
                       border: '1px solid',
-                      borderColor: messageType === 'success' ? '#2E7D3230' : '#d32f2f30'
+                      borderColor: messageType === 'success' ? (isDark ? 'rgba(129, 199, 132, 0.2)' : '#2E7D3230') : (isDark ? 'rgba(229, 115, 115, 0.2)' : '#d32f2f30'),
+                      bgcolor: messageType === 'success' ? (isDark ? 'rgba(129, 199, 132, 0.05)' : '#edf7ed') : (isDark ? 'rgba(229, 115, 115, 0.05)' : '#fdeded'),
+                      color: messageType === 'success' ? (isDark ? '#81C784' : '#1e4620') : (isDark ? '#e57373' : '#5f2120')
                     }}
                   >
                     {message}
@@ -224,7 +266,7 @@ export default function ComplaintForm() {
 
               <Box component="form" onSubmit={handleSubmit} noValidate>
                 <Grid container spacing={3}>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       label="Originator Name"
@@ -235,7 +277,7 @@ export default function ComplaintForm() {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       type="date"
@@ -250,7 +292,7 @@ export default function ComplaintForm() {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       type="time"
@@ -265,7 +307,7 @@ export default function ComplaintForm() {
                     />
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <FormControl fullWidth required sx={fieldStyle}>
                       <InputLabel>Request Category</InputLabel>
                       <Select
@@ -283,7 +325,7 @@ export default function ComplaintForm() {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       multiline
@@ -298,15 +340,15 @@ export default function ComplaintForm() {
                     />
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Box sx={{
                       p: 3,
                       borderRadius: 4,
-                      border: '2px dashed rgba(197, 160, 89, 0.2)',
-                      bgcolor: 'rgba(255, 255, 255, 0.3)',
+                      border: `2px dashed ${colors.border}`,
+                      bgcolor: colors.inputBg,
                       textAlign: 'center',
                       transition: 'all 0.3s',
-                      '&:hover': { borderColor: '#C5A059', bgcolor: 'rgba(255, 255, 255, 0.5)' }
+                      '&:hover': { borderColor: colors.accent, bgcolor: colors.inputFocusBg }
                     }}>
                       {!attachment ? (
                         <Box>
@@ -314,7 +356,7 @@ export default function ComplaintForm() {
                             variant="text"
                             component="label"
                             startIcon={<AttachFileIcon />}
-                            sx={{ color: '#4A3E31', fontWeight: 700 }}
+                            sx={{ color: colors.text, fontWeight: 700 }}
                           >
                             Attach Supporting Documentation
                             <input
@@ -347,7 +389,7 @@ export default function ComplaintForm() {
                     </Box>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Button
                       type="submit"
                       variant="contained"
@@ -358,16 +400,17 @@ export default function ComplaintForm() {
                       sx={{
                         mt: 2,
                         py: 2,
-                        bgcolor: '#4A3E31',
+                        bgcolor: colors.text,
+                        color: colors.bg,
                         borderRadius: 4,
                         fontWeight: 900,
                         fontSize: '1rem',
                         textTransform: 'none',
                         letterSpacing: 0.5,
-                        boxShadow: '0 15px 35px rgba(74, 62, 49, 0.25)',
+                        boxShadow: isDark ? '0 15px 35px rgba(0,0,0,0.4)' : '0 15px 35px rgba(74, 62, 49, 0.25)',
                         transition: 'all 0.3s',
-                        '&:hover': { bgcolor: '#2D261E', transform: 'translateY(-3px)', boxShadow: '0 20px 45px rgba(74, 62, 49, 0.3)' },
-                        '&.Mui-disabled': { bgcolor: 'rgba(74, 62, 49, 0.3)' }
+                        '&:hover': { bgcolor: isDark ? '#FFF' : '#2D261E', transform: 'translateY(-3px)', boxShadow: isDark ? '0 20px 45px rgba(0,0,0,0.6)' : '0 20px 45px rgba(74, 62, 49, 0.3)' },
+                        '&.Mui-disabled': { bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74, 62, 49, 0.3)' }
                       }}
                     >
                       {loading ? 'Processing Submission...' : 'Finalise Submission'}

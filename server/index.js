@@ -23,7 +23,6 @@ app.use(express.urlencoded({ extended: true }));
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
-    console.log('Created uploads directory');
 }
 
 // Serve static files from uploads directory
@@ -62,7 +61,6 @@ mongoose.connect(process.env.mongodb_url, {
                         studentId: `ADM${Math.floor(Math.random() * 900) + 100}`
                     });
                     await newAdmin.save();
-                    console.log(`Auto-seeded admin: ${adminData.name} (${adminData.email})`);
                 } else {
                     // Force update to ensure role and department are correct
                     existingUser.adminDepartment = adminData.adminDepartment;
@@ -71,7 +69,6 @@ mongoose.connect(process.env.mongodb_url, {
                     existingUser.email = adminData.email; // Ensure email matches
                     existingUser.admissionNumber = adminData.admissionNumber; // Ensure admissionNumber matches
                     await existingUser.save();
-                    console.log(`Synced existing admin: ${adminData.email} -> ${adminData.adminDepartment}`);
                 }
             } catch (seedError) {
                 console.error(`Error seeding admin ${adminData.email}:`, seedError.message);

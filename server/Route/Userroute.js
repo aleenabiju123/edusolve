@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var userModel = require('../model/User');
+var loginHistoryModel = require('../model/LoginHistory');
 const bcrypt = require('bcrypt');
 
 // Unified registration endpoint for both students and admins
@@ -303,6 +304,22 @@ router.post('/login', async (req, res) => {
         // Compare password
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (isPasswordValid) {
+            // Record login history
+            try {
+                const history = new loginHistoryModel({
+                    userId: user._id,
+                    userName: user.name,
+                    email: user.email,
+                    userType: user.userType || 'Student',
+                    adminDepartment: user.adminDepartment,
+                    ipAddress: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+                    userAgent: req.headers['user-agent']
+                });
+                await history.save();
+            } catch (historyError) {
+                console.error('Error recording login history:', historyError);
+            }
+
             return res.status(200).json({
                 success: true,
                 message: "Login successful",
@@ -499,6 +516,38 @@ router.put('/change-password', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Server error: ' + error.message
+        });
+    }
+});
+
+// api to fetch login history (Admin only)
+router.get('/login-history', async (req, res) => {
+    try {
+        const { adminId } = req.query;
+
+        if (adminId && require('mongoose').Types.ObjectId.isValid(adminId)) {
+            const admin = await userModel.findById(adminId);
+            if (!admin || admin.adminDepartment !== 'General') {
+                return res.status(403).json({
+                    success: false,
+                    message: "Access denied. Only General Admin can view login history."
+                });
+            }
+        } else if (adminId) {
+            // If adminId is provided but invalid, we still restrict unless we know it's a valid admin
+            return res.status(400).json({ success: false, message: "Invalid Admin ID format." });
+        }
+
+        const history = await loginHistoryModel.find().sort({ loginTime: -1 }).limit(500);
+        res.status(200).json({
+            success: true,
+            history
+        });
+    } catch (error) {
+        console.error('Fetch Login History Error:', error);
+        res.status(500).json({
+            success: false,
+            message: "Server error: " + error.message
         });
     }
 });

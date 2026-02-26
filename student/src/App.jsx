@@ -8,8 +8,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import StudentDashboard from "./pages/StudentDashboard";
 import ComplaintForm from "./pages/ComplaintForm";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminAnalytics from "./pages/AdminAnalytics";
-import AdminPerformance from "./pages/AdminPerformance";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 // Protected Route component
 function ProtectedRoute({ children, requiredUserType }) {
@@ -44,6 +44,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Welcome />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
 
       <Route path="/student-signin" element={<StudentSignIn />} />
 
@@ -62,16 +64,6 @@ function App() {
       <Route path="/admin" element={
         <ProtectedRoute requiredUserType="Admin">
           <AdminDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin/analytics" element={
-        <ProtectedRoute requiredUserType="Admin">
-          <AdminAnalytics />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin/performance" element={
-        <ProtectedRoute requiredUserType="Admin">
-          <AdminPerformance />
         </ProtectedRoute>
       } />
     </Routes>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
@@ -15,11 +15,34 @@ import {
   Checkbox,
   Grid,
   Link,
-  FormControlLabel
+  FormControlLabel,
+  Tooltip
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import {
+  Visibility,
+  VisibilityOff,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon
+} from '@mui/icons-material';
 
 export default function StudentRegister() {
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(!isDark);
+
+  const colors = {
+    bg: isDark ? '#121212' : '#FFFDF5',
+    cardBg: isDark ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+    text: isDark ? '#FFFDF5' : '#4A3E31',
+    textSecondary: isDark ? 'rgba(255, 252, 245, 0.6)' : '#6B5E4F',
+    accent: '#C5A059',
+    border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(197, 160, 89, 0.2)'
+  };
+
   const [formData, setFormData] = useState({
     role: 'student',
     admissionNumber: '',
@@ -166,12 +189,29 @@ export default function StudentRegister() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      bgcolor: '#FFFDF5',
+      bgcolor: colors.bg,
       position: 'relative',
       overflow: 'hidden',
       py: { xs: 4, md: 6 },
-      px: 2
+      px: 2,
+      transition: 'all 0.4s ease'
     }}>
+      {/* Theme Toggle */}
+      <Box sx={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}>
+        <Tooltip title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+          <IconButton
+            onClick={toggleTheme}
+            sx={{
+              color: colors.text,
+              bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+              border: `1px solid ${colors.border}`,
+              '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)' }
+            }}
+          >
+            {isDark ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+        </Tooltip>
+      </Box>
       {/* Decorative Warm Blobs */}
       <Box sx={{
         position: 'absolute',
@@ -213,11 +253,11 @@ export default function StudentRegister() {
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             overflow: 'hidden',
-            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            bgcolor: colors.cardBg,
             backdropFilter: 'blur(25px)',
             borderRadius: 10,
-            border: '1px solid rgba(197, 160, 89, 0.2)',
-            boxShadow: '0 40px 100px rgba(0, 0, 0, 0.08)'
+            border: `1px solid ${colors.border}`,
+            boxShadow: isDark ? '0 40px 100px rgba(0, 0, 0, 0.4)' : '0 40px 100px rgba(0, 0, 0, 0.08)'
           }}
         >
           {/* LEFT: Community Hero Panel */}
@@ -237,11 +277,13 @@ export default function StudentRegister() {
               content: '""',
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(to top, rgba(74,62,49,0.95) 0%, rgba(74,62,49,0.4) 55%, rgba(74,62,49,0.1) 100%)',
+              background: isDark
+                ? 'linear-gradient(to top, rgba(18,18,18,0.95) 0%, rgba(18,18,18,0.6) 55%, rgba(18,18,18,0.2) 100%)'
+                : 'linear-gradient(to top, rgba(74,62,49,0.95) 0%, rgba(74,62,49,0.4) 55%, rgba(74,62,49,0.1) 100%)',
             }
           }}>
             <Box sx={{ position: 'relative', zIndex: 1, p: 5 }}>
-              <Typography variant="overline" sx={{ color: '#C5A059', fontWeight: 900, letterSpacing: 3 }}>
+              <Typography variant="overline" sx={{ color: colors.accent, fontWeight: 900, letterSpacing: 3 }}>
                 EDUSOLVE COMMUNITY
               </Typography>
               <Typography variant="h4" fontWeight="900" sx={{ color: 'white', mt: 1.5, lineHeight: 1.25, letterSpacing: '-0.5px' }}>
@@ -253,7 +295,7 @@ export default function StudentRegister() {
               <Box sx={{ display: 'flex', gap: 4, mt: 4 }}>
                 {[{ val: '2,000+', label: 'Students' }, { val: '98%', label: 'Resolved' }, { val: '24h', label: 'Response' }].map((s) => (
                   <Box key={s.label}>
-                    <Typography variant="h6" fontWeight="900" sx={{ color: '#C5A059' }}>{s.val}</Typography>
+                    <Typography variant="h6" fontWeight="900" sx={{ color: colors.accent }}>{s.val}</Typography>
                     <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: 1 }}>{s.label}</Typography>
                   </Box>
                 ))}
@@ -264,13 +306,13 @@ export default function StudentRegister() {
           {/* RIGHT: Registration Form */}
           <Box sx={{ flex: 1, p: { xs: 4, md: 5 }, display: 'flex', flexDirection: 'column', justifyContent: 'center', overflowY: 'auto' }}>
             <Box sx={{ mb: 4 }}>
-              <Typography variant="overline" sx={{ color: '#C5A059', fontWeight: 900, letterSpacing: 2 }}>
+              <Typography variant="overline" sx={{ color: colors.accent, fontWeight: 900, letterSpacing: 2 }}>
                 START YOUR JOURNEY
               </Typography>
-              <Typography variant="h4" fontWeight="900" sx={{ color: '#4A3E31', letterSpacing: '-1px', mt: 0.5 }}>
+              <Typography variant="h4" fontWeight="900" sx={{ color: colors.text, letterSpacing: '-1px', mt: 0.5 }}>
                 Create Account
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6B5E4F', mt: 1 }}>
+              <Typography variant="body2" sx={{ color: colors.textSecondary, mt: 1 }}>
                 Fill in your details below to get started.
               </Typography>
             </Box>
@@ -290,7 +332,17 @@ export default function StudentRegister() {
                     error={!!errors.fullName}
                     helperText={errors.fullName}
                     disabled={isLoading}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 4,
+                        color: colors.text,
+                        '& fieldset': { borderColor: colors.border },
+                        '&:hover fieldset': { borderColor: colors.accent },
+                        '&.Mui-focused fieldset': { borderColor: colors.accent }
+                      },
+                      '& .MuiInputLabel-root': { color: colors.textSecondary },
+                      '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
+                    }}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -306,7 +358,17 @@ export default function StudentRegister() {
                     error={!!errors.email}
                     helperText={errors.email}
                     disabled={isLoading}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 4,
+                        color: colors.text,
+                        '& fieldset': { borderColor: colors.border },
+                        '&:hover fieldset': { borderColor: colors.accent },
+                        '&.Mui-focused fieldset': { borderColor: colors.accent }
+                      },
+                      '& .MuiInputLabel-root': { color: colors.textSecondary },
+                      '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
+                    }}
                   />
                 </Grid>
 
@@ -322,7 +384,17 @@ export default function StudentRegister() {
                     error={!!errors.admissionNumber}
                     helperText={errors.admissionNumber}
                     disabled={isLoading}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 4,
+                        color: colors.text,
+                        '& fieldset': { borderColor: colors.border },
+                        '&:hover fieldset': { borderColor: colors.accent },
+                        '&.Mui-focused fieldset': { borderColor: colors.accent }
+                      },
+                      '& .MuiInputLabel-root': { color: colors.textSecondary },
+                      '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
+                    }}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -337,10 +409,20 @@ export default function StudentRegister() {
                     error={!!errors.phoneNumber}
                     helperText={errors.phoneNumber}
                     disabled={isLoading}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 4,
+                        color: colors.text,
+                        '& fieldset': { borderColor: colors.border },
+                        '&:hover fieldset': { borderColor: colors.accent },
+                        '&.Mui-focused fieldset': { borderColor: colors.accent }
+                      },
+                      '& .MuiInputLabel-root': { color: colors.textSecondary },
+                      '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
+                    }}
                   />
                 </Grid>
-                <Grid size={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     select
                     required
@@ -351,10 +433,20 @@ export default function StudentRegister() {
                     value={formData.department}
                     onChange={handleInputChange}
                     disabled={isLoading}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 4,
+                        color: colors.text,
+                        '& fieldset': { borderColor: colors.border },
+                        '&:hover fieldset': { borderColor: colors.accent },
+                        '&.Mui-focused fieldset': { borderColor: colors.accent }
+                      },
+                      '& .MuiInputLabel-root': { color: colors.textSecondary },
+                      '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
+                    }}
                   >
                     {departments.map((option) => (
-                      <MenuItem key={option} value={option}>
+                      <MenuItem key={option} value={option} sx={{ color: colors.text }}>
                         {option}
                       </MenuItem>
                     ))}
@@ -374,7 +466,17 @@ export default function StudentRegister() {
                     error={!!errors.password}
                     helperText={errors.password}
                     disabled={isLoading}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 4,
+                        color: colors.text,
+                        '& fieldset': { borderColor: colors.border },
+                        '&:hover fieldset': { borderColor: colors.accent },
+                        '&.Mui-focused fieldset': { borderColor: colors.accent }
+                      },
+                      '& .MuiInputLabel-root': { color: colors.textSecondary },
+                      '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
+                    }}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -382,7 +484,7 @@ export default function StudentRegister() {
                             aria-label="toggle password visibility"
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
-                            sx={{ color: '#C5A059' }}
+                            sx={{ color: colors.accent }}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -404,7 +506,17 @@ export default function StudentRegister() {
                     error={!!errors.confirmPassword}
                     helperText={errors.confirmPassword}
                     disabled={isLoading}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 4,
+                        color: colors.text,
+                        '& fieldset': { borderColor: colors.border },
+                        '&:hover fieldset': { borderColor: colors.accent },
+                        '&.Mui-focused fieldset': { borderColor: colors.accent }
+                      },
+                      '& .MuiInputLabel-root': { color: colors.textSecondary },
+                      '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
+                    }}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -412,7 +524,7 @@ export default function StudentRegister() {
                             aria-label="toggle confirm password visibility"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             edge="end"
-                            sx={{ color: '#C5A059' }}
+                            sx={{ color: colors.accent }}
                           >
                             {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -422,20 +534,20 @@ export default function StudentRegister() {
                   />
                 </Grid>
 
-                <Grid size={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControlLabel
                     control={
                       <Checkbox
                         name="agreeToTerms"
                         checked={formData.agreeToTerms}
                         onChange={handleInputChange}
-                        sx={{ color: '#C5A059', '&.Mui-checked': { color: '#C5A059' } }}
+                        sx={{ color: colors.accent, '&.Mui-checked': { color: colors.accent } }}
                         disabled={isLoading}
                       />
                     }
                     label={
-                      <Typography variant="body2" sx={{ color: '#6B5E4F' }}>
-                        I agree to the <Link href="#" sx={{ color: '#C5A059', fontWeight: 600 }}>Terms and Conditions</Link> and <Link href="#" sx={{ color: '#C5A059', fontWeight: 600 }}>Privacy Policy</Link>
+                      <Typography variant="body2" sx={{ color: colors.textSecondary }}>
+                        I agree to the <Link href="#" sx={{ color: colors.accent, fontWeight: 600 }}>Terms and Conditions</Link> and <Link href="#" sx={{ color: colors.accent, fontWeight: 600 }}>Privacy Policy</Link>
                       </Typography>
                     }
                   />
@@ -462,26 +574,30 @@ export default function StudentRegister() {
                   mt: 6,
                   mb: 3,
                   py: 2,
-                  bgcolor: '#4A3E31',
+                  bgcolor: colors.text,
+                  color: colors.bg,
                   borderRadius: 5,
                   fontSize: '1.1rem',
                   fontWeight: 'bold',
-                  boxShadow: '0 20px 40px rgba(74, 62, 49, 0.2)',
+                  boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.5)' : '0 20px 40px rgba(74, 62, 49, 0.2)',
+                  transition: 'all 0.3s',
                   '&:hover': {
-                    bgcolor: '#2D261E',
+                    bgcolor: isDark ? '#FFF' : '#2D261E',
+                    color: isDark ? '#000' : '#FFF',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 25px 50px rgba(74, 62, 49, 0.3)',
-                  }
+                    boxShadow: isDark ? '0 25px 50px rgba(0,0,0,0.6)' : '0 25px 50px rgba(74, 62, 49, 0.3)',
+                  },
+                  '&.Mui-disabled': { bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74, 62, 49, 0.3)' }
                 }}
               >
                 {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
               </Button>
 
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#6B5E4F' }}>
+                <Typography variant="body2" sx={{ color: colors.textSecondary }}>
                   Already have an account?{' '}
                   <Link component={RouterLink} to="/student-signin" sx={{
-                    color: '#C5A059',
+                    color: colors.accent,
                     fontWeight: 700,
                     textDecoration: 'none',
                     '&:hover': { textDecoration: 'underline' }

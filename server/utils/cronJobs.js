@@ -8,10 +8,8 @@ const startComplaintStatusCron = () => {
     const runUpdate = async () => {
         // Only run if database is connected
         if (require('mongoose').connection.readyState !== 1) {
-            console.log('Skipping automatic update: Database not connected.');
             return;
         }
-        console.log('Running automatic complaint status update check...');
         try {
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -26,11 +24,6 @@ const startComplaintStatusCron = () => {
                 }
             );
 
-            if (result.modifiedCount > 0) {
-                console.log(`Successfully updated ${result.modifiedCount} complaints to 'Pending' status.`);
-            } else {
-                console.log('No complaints found that require status update.');
-            }
         } catch (error) {
             console.error('Error during automatic complaint status update:', error);
         }
@@ -42,7 +35,6 @@ const startComplaintStatusCron = () => {
     // Then schedule it to run every hour
     setInterval(runUpdate, checkInterval);
 
-    console.log('Complaint status update job initialized (runs every hour)');
 };
 
 module.exports = { startComplaintStatusCron };

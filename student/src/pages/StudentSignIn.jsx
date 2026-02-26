@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
@@ -11,11 +11,34 @@ import {
   Link,
   Paper,
   InputAdornment,
-  IconButton
+  IconButton,
+  Tooltip
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import {
+  Visibility,
+  VisibilityOff,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon
+} from '@mui/icons-material';
 
 export default function StudentSignIn() {
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(!isDark);
+
+  const colors = {
+    bg: isDark ? '#121212' : '#FFFDF5',
+    cardBg: isDark ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+    text: isDark ? '#FFFDF5' : '#4A3E31',
+    textSecondary: isDark ? 'rgba(255, 252, 245, 0.6)' : '#6B5E4F',
+    accent: '#C5A059',
+    border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(197, 160, 89, 0.2)'
+  };
+
   const [formData, setFormData] = useState({
     loginId: '',
     password: ''
@@ -141,11 +164,28 @@ export default function StudentSignIn() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      bgcolor: '#FFFDF5',
+      bgcolor: colors.bg,
       position: 'relative',
       overflow: 'hidden',
-      p: 2
+      p: 2,
+      transition: 'all 0.4s ease'
     }}>
+      {/* Theme Toggle */}
+      <Box sx={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}>
+        <Tooltip title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+          <IconButton
+            onClick={toggleTheme}
+            sx={{
+              color: colors.text,
+              bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+              border: `1px solid ${colors.border}`,
+              '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)' }
+            }}
+          >
+            {isDark ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+        </Tooltip>
+      </Box>
       {/* Decorative Blobs */}
       <Box sx={{
         position: 'absolute', top: -100, right: -100, width: 400, height: 400,
@@ -175,11 +215,11 @@ export default function StudentSignIn() {
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             overflow: 'hidden',
-            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            bgcolor: colors.cardBg,
             backdropFilter: 'blur(20px)',
             borderRadius: 10,
-            border: '1px solid rgba(197, 160, 89, 0.2)',
-            boxShadow: '0 40px 80px rgba(0, 0, 0, 0.07)',
+            border: `1px solid ${colors.border}`,
+            boxShadow: isDark ? '0 40px 80px rgba(0, 0, 0, 0.4)' : '0 40px 80px rgba(0, 0, 0, 0.07)',
             minHeight: { md: 600 }
           }}
         >
@@ -199,7 +239,9 @@ export default function StudentSignIn() {
               content: '""',
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(to top, rgba(74,62,49,0.97) 0%, rgba(74,62,49,0.5) 50%, rgba(74,62,49,0.15) 100%)',
+              background: isDark
+                ? 'linear-gradient(to top, rgba(18,18,18,0.97) 0%, rgba(18,18,18,0.7) 50%, rgba(18,18,18,0.2) 100%)'
+                : 'linear-gradient(to top, rgba(74,62,49,0.97) 0%, rgba(74,62,49,0.5) 50%, rgba(74,62,49,0.15) 100%)',
             }
           }}>
             <Box sx={{ position: 'relative', zIndex: 1, p: { md: 5, lg: 6 } }}>
@@ -207,7 +249,7 @@ export default function StudentSignIn() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
                 <Box sx={{
                   width: 40, height: 40, borderRadius: 2,
-                  bgcolor: '#C5A059',
+                  bgcolor: colors.accent,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 900, color: 'white', fontSize: 20
                 }}>E</Box>
@@ -216,7 +258,7 @@ export default function StudentSignIn() {
                 </Typography>
               </Box>
 
-              <Typography variant="overline" sx={{ color: '#C5A059', fontWeight: 900, letterSpacing: 3 }}>
+              <Typography variant="overline" sx={{ color: colors.accent, fontWeight: 900, letterSpacing: 3 }}>
                 WELCOME BACK
               </Typography>
               <Typography variant="h3" fontWeight="900" sx={{ color: 'white', mt: 1.5, lineHeight: 1.2, letterSpacing: '-1px' }}>
@@ -231,11 +273,11 @@ export default function StudentSignIn() {
                 {['Real-time tracking', 'Campus community', 'Fast resolution'].map((f) => (
                   <Box key={f} sx={{
                     px: 2, py: 0.8,
-                    bgcolor: 'rgba(197, 160, 89, 0.15)',
-                    border: '1px solid rgba(197, 160, 89, 0.3)',
+                    bgcolor: `${colors.accent}25`,
+                    border: `1px solid ${colors.accent}40`,
                     borderRadius: 10,
                   }}>
-                    <Typography variant="caption" sx={{ color: '#C5A059', fontWeight: 700 }}>{f}</Typography>
+                    <Typography variant="caption" sx={{ color: colors.accent, fontWeight: 700 }}>{f}</Typography>
                   </Box>
                 ))}
               </Box>
@@ -253,21 +295,21 @@ export default function StudentSignIn() {
             {/* Mobile brand */}
             <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 1.5, mb: 4 }}>
               <Box sx={{
-                width: 36, height: 36, borderRadius: 2, bgcolor: '#C5A059',
+                width: 36, height: 36, borderRadius: 2, bgcolor: colors.accent,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontWeight: 900, color: 'white', fontSize: 18
               }}>E</Box>
-              <Typography variant="h6" fontWeight="900" sx={{ color: '#4A3E31' }}>EduSolve</Typography>
+              <Typography variant="h6" fontWeight="900" sx={{ color: colors.text }}>EduSolve</Typography>
             </Box>
 
             <Box sx={{ mb: 5 }}>
-              <Typography variant="overline" sx={{ color: '#C5A059', fontWeight: 900, letterSpacing: 2 }}>
+              <Typography variant="overline" sx={{ color: colors.accent, fontWeight: 900, letterSpacing: 2 }}>
                 SIGN IN
               </Typography>
-              <Typography variant="h4" fontWeight="900" sx={{ color: '#4A3E31', letterSpacing: '-1px', mt: 0.5 }}>
+              <Typography variant="h4" fontWeight="900" sx={{ color: colors.text, letterSpacing: '-1px', mt: 0.5 }}>
                 Welcome Back
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6B5E4F', mt: 1 }}>
+              <Typography variant="body2" sx={{ color: colors.textSecondary, mt: 1 }}>
                 Continue your journey with EduSolve.
               </Typography>
             </Box>
@@ -294,10 +336,13 @@ export default function StudentSignIn() {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 3,
-                    '& fieldset': { borderColor: 'rgba(197, 160, 89, 0.3)' },
-                    '&:hover fieldset': { borderColor: '#C5A059' }
+                    color: colors.text,
+                    '& fieldset': { borderColor: colors.border },
+                    '&:hover fieldset': { borderColor: colors.accent },
+                    '&.Mui-focused fieldset': { borderColor: colors.accent }
                   },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#4A3E31' }
+                  '& .MuiInputLabel-root': { color: colors.textSecondary },
+                  '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
                 }}
               />
               <TextField
@@ -317,10 +362,13 @@ export default function StudentSignIn() {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 3,
-                    '& fieldset': { borderColor: 'rgba(197, 160, 89, 0.3)' },
-                    '&:hover fieldset': { borderColor: '#C5A059' }
+                    color: colors.text,
+                    '& fieldset': { borderColor: colors.border },
+                    '&:hover fieldset': { borderColor: colors.accent },
+                    '&.Mui-focused fieldset': { borderColor: colors.accent }
                   },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#4A3E31' }
+                  '& .MuiInputLabel-root': { color: colors.textSecondary },
+                  '& .MuiInputLabel-root.Mui-focused': { color: colors.text }
                 }}
                 InputProps={{
                   endAdornment: (
@@ -330,7 +378,7 @@ export default function StudentSignIn() {
                         onClick={handleClickShowPassword}
                         onMouseDown={handleMouseDownPassword}
                         edge="end"
-                        sx={{ color: '#C5A059' }}
+                        sx={{ color: colors.accent }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
@@ -341,8 +389,8 @@ export default function StudentSignIn() {
 
               <Box sx={{ mt: 1, textAlign: 'right' }}>
                 <Link component={RouterLink} to="/forgot-password" sx={{
-                  color: '#C5A059', fontWeight: 600, textDecoration: 'none', fontSize: '0.9rem',
-                  '&:hover': { color: '#4A3E31' }
+                  color: colors.accent, fontWeight: 600, textDecoration: 'none', fontSize: '0.9rem',
+                  '&:hover': { color: colors.text }
                 }}>
                   Forgot password?
                 </Link>
@@ -355,20 +403,29 @@ export default function StudentSignIn() {
                 disabled={isLoading}
                 sx={{
                   mt: 4, mb: 3, py: 1.8,
-                  bgcolor: '#4A3E31', borderRadius: 4,
+                  bgcolor: colors.text,
+                  color: colors.bg,
+                  borderRadius: 4,
                   fontSize: '1rem', fontWeight: 'bold',
-                  boxShadow: '0 10px 20px rgba(74, 62, 49, 0.2)',
-                  '&:hover': { bgcolor: '#2D261E', transform: 'translateY(-2px)', boxShadow: '0 15px 30px rgba(74, 62, 49, 0.3)' }
+                  boxShadow: isDark ? '0 10px 20px rgba(0,0,0,0.4)' : '0 10px 20px rgba(74, 62, 49, 0.2)',
+                  transition: 'all 0.3s',
+                  '&:hover': {
+                    bgcolor: isDark ? '#FFF' : '#2D261E',
+                    color: isDark ? '#000' : '#FFF',
+                    transform: 'translateY(-2px)',
+                    boxShadow: isDark ? '0 15px 30px rgba(0,0,0,0.5)' : '0 15px 30px rgba(74, 62, 49, 0.3)'
+                  },
+                  '&.Mui-disabled': { bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74, 62, 49, 0.3)' }
                 }}
               >
                 {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In to EduSolve'}
               </Button>
 
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#6B5E4F' }}>
+                <Typography variant="body2" sx={{ color: colors.textSecondary }}>
                   New to EduSolve?{' '}
                   <Link component={RouterLink} to="/student-register" sx={{
-                    color: '#C5A059', fontWeight: 700, textDecoration: 'none',
+                    color: colors.accent, fontWeight: 700, textDecoration: 'none',
                     '&:hover': { textDecoration: 'underline' }
                   }}>
                     Create Account

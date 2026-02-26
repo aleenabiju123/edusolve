@@ -21,29 +21,34 @@ import {
 const drawerWidth = 270;
 
 const darkPalette = {
-    bgPrimary: '#0F0F1A', bgSecondary: '#1A1A2E', bgTertiary: '#16213E',
+    bgPrimary: '#121212', bgSecondary: '#1E1E1E', bgTertiary: '#181818',
     glassBg: 'rgba(255,255,255,0.05)', glassBorder: 'rgba(255,255,255,0.08)',
-    sidebarBg: ['#1A1A2E', '#0F0F1A'], appBarBg: 'rgba(15,15,26,0.75)',
+    sidebarBg: ['#1E1E1E', '#121212'], appBarBg: 'rgba(18,18,18,0.75)',
     inputBg: 'rgba(255,255,255,0.03)',
-    accent: '#6C63FF', accentLight: '#8B83FF', cyan: '#00D9FF',
-    emerald: '#00E676', amber: '#FFB300', rose: '#FF5252',
-    textPrimary: '#EAEAFF', textSecondary: 'rgba(255,255,255,0.55)', textMuted: 'rgba(255,255,255,0.3)',
+    accent: '#C5A059', accentLight: '#D4B87E', cyan: '#D4B87E',
+    emerald: '#81C784', amber: '#FFD54F', rose: '#E57373',
+    textPrimary: '#FFFDF5', textSecondary: 'rgba(255,252,245,0.6)', textMuted: 'rgba(255,252,245,0.3)',
 };
 
 const lightPalette = {
-    bgPrimary: '#F5F7FB', bgSecondary: '#FFFFFF', bgTertiary: '#EEF1F8',
-    glassBg: 'rgba(255,255,255,0.85)', glassBorder: 'rgba(0,0,0,0.08)',
-    sidebarBg: ['#FFFFFF', '#F8F9FD'], appBarBg: 'rgba(255,255,255,0.85)',
+    bgPrimary: '#FFFDF5', bgSecondary: '#FFFFFF', bgTertiary: '#FFFDF5',
+    glassBg: 'rgba(255,253,245,0.85)', glassBorder: 'rgba(197, 160, 89, 0.15)',
+    sidebarBg: ['#FFFFFF', '#FFFDF5'], appBarBg: 'rgba(255,253,245,0.85)',
     inputBg: 'rgba(0,0,0,0.02)',
-    accent: '#5B52E0', accentLight: '#7B73FF', cyan: '#0097B2',
-    emerald: '#00A854', amber: '#E09800', rose: '#E53935',
-    textPrimary: '#1A1A2E', textSecondary: 'rgba(0,0,0,0.55)', textMuted: 'rgba(0,0,0,0.35)',
+    accent: '#4A3E31', accentLight: '#6B5E4F', cyan: '#C5A059',
+    emerald: '#2E7D32', amber: '#F57F17', rose: '#C62828',
+    textPrimary: '#4A3E31', textSecondary: '#6B5E4F', textMuted: '#A89E94',
 };
 
 export default function AdminPerformance() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [isDark, setIsDark] = useState(true);
+    const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+
+    useEffect(() => {
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }, [isDark]);
+
     const c = isDark ? darkPalette : lightPalette;
     const [complaints, setComplaints] = useState([]);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -71,7 +76,7 @@ export default function AdminPerformance() {
     // ─── KPI Calculations ─────────────────────
     const totalComplaints = complaints.length;
     const resolvedCount = complaints.filter(x => x.status === 'Resolved').length;
-    const pendingCount = complaints.filter(x => x.status === 'Pending').length;
+    const pendingCount = complaints.filter(x => x.status === 'Pending' || x.status === 'In Progress').length;
     const registeredCount = complaints.filter(x => x.status === 'Registered').length;
     const resolutionRate = totalComplaints > 0 ? Math.round((resolvedCount / totalComplaints) * 100) : 0;
 
@@ -250,7 +255,7 @@ export default function AdminPerformance() {
                             { icon: <SpeedIcon />, label: 'Awaiting Action', val: registeredCount, color: c.amber, sub: 'New complaints' },
                             { icon: <TrendingDownIcon />, label: 'Backlog', val: pendingCount, color: c.rose, sub: 'In-progress items' },
                         ].map((s, i) => (
-                            <Grid item xs={6} md={3} key={i}>
+                            <Grid size={{ xs: 6, md: 3 }} key={i}>
                                 <Paper elevation={0} sx={{
                                     p: 2.5, borderRadius: 4, bgcolor: `${s.color}15`, border: `1px solid ${c.glassBorder}`,
                                     transition: 'all 0.3s', '&:hover': { transform: 'translateY(-3px)', borderColor: `${s.color}40` },
@@ -274,7 +279,7 @@ export default function AdminPerformance() {
 
                 <Grid container spacing={3}>
                     {/* ── Resolution Rate Ring + Progress Bars ── */}
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <Fade in timeout={700}>
                             <Paper elevation={0} sx={{ ...chartPaperSx, textAlign: 'center' }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: c.textPrimary, mb: 3 }}>Resolution Overview</Typography>
@@ -306,7 +311,7 @@ export default function AdminPerformance() {
                     </Grid>
 
                     {/* ── Monthly Trend Line Chart ── */}
-                    <Grid item xs={12} md={8}>
+                    <Grid size={{ xs: 12, md: 8 }}>
                         <Fade in timeout={900}>
                             <Paper elevation={0} sx={chartPaperSx}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
@@ -329,7 +334,7 @@ export default function AdminPerformance() {
                     </Grid>
 
                     {/* ── Priority Distribution (Stacked Bar) ── */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Fade in timeout={1100}>
                             <Paper elevation={0} sx={chartPaperSx}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
