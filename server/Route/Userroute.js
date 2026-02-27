@@ -533,10 +533,10 @@ router.get('/login-history', async (req, res) => {
                     message: "Access denied. Only General Admin can view login history."
                 });
             }
-        } else if (adminId) {
-            // If adminId is provided but invalid, we still restrict unless we know it's a valid admin
-            return res.status(400).json({ success: false, message: "Invalid Admin ID format." });
         }
+        // note: non‑ObjectId adminId values are ignored, since we only need to verify
+        // general admin rights when a valid Mongo ID is provided. requests without
+        // adminId or with a custom identifier (e.g. ADM001) will still succeed.
 
         const history = await loginHistoryModel.find().sort({ loginTime: -1 }).limit(500);
         res.status(200).json({

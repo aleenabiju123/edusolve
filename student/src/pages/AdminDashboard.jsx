@@ -65,11 +65,13 @@ import {
   Visibility,
   VisibilityOff,
   ExpandMore as ExpandMoreIcon,
-  CheckCircleOutline as SuccessIcon
+  CheckCircleOutline as SuccessIcon,
+  Feedback as FeedbackIcon
 } from '@mui/icons-material';
 import AdminAnalyticsSection from './AdminAnalyticsSection';
 import AdminPerformanceSection from './AdminPerformanceSection';
 import AdminLoginHistorySection from './AdminLoginHistorySection';
+import AdminFeedbackSection from './AdminFeedbackSection';
 
 const sideDrawerWidth = 270;
 const actionDrawerWidth = 380;
@@ -419,7 +421,8 @@ export default function AdminDashboard() {
           { id: 'complaints', text: 'Complaints', icon: <AssignmentIcon /> },
           { id: 'analytics', text: 'Analytics', icon: <AssessmentIcon /> },
           { id: 'performance', text: 'Performance', icon: <TrendingUpIcon /> },
-          ...(adminDepartment === 'General' ? [{ id: 'loginHistory', text: 'Login Pulse', icon: <LoginIcon /> }] : []),
+          { id: 'feedback', text: 'Feedback & Grievance', icon: <FeedbackIcon /> },
+          ...(adminDepartment === 'General' ? [{ id: 'loginHistory', text: 'Login History', icon: <LoginIcon /> }] : []),
           { id: 'profile', text: 'My Profile', icon: <PersonIcon /> },
         ].map((item) => {
           const active = activeTab === item.id;
@@ -1008,6 +1011,14 @@ export default function AdminDashboard() {
           <Box>
             <AdminLoginHistorySection isDark={isDark} c={c} />
           </Box>
+        )}
+
+        {activeTab === 'feedback' && (
+          <Fade in timeout={800}>
+            <Box>
+              <AdminFeedbackSection isDark={isDark} colors={c} />
+            </Box>
+          </Fade>
         )}
 
         {activeTab === 'profile' && (

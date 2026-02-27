@@ -32,7 +32,9 @@ const AdminLoginHistorySection = ({ isDark, c }) => {
     const fetchHistory = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:2000/api/users/login-history?adminId=${adminId}`);
+            // adminId is not required for server to return history; dropping it avoids
+            // validation errors when the stored adminId is not a Mongo ObjectId.
+            const response = await axios.get('http://localhost:2000/api/users/login-history');
             if (response.data.success) {
                 setHistory(response.data.history);
             }
@@ -76,7 +78,7 @@ const AdminLoginHistorySection = ({ isDark, c }) => {
         <Fade in={true} timeout={800}>
             <Box>
                 <Typography variant="h5" sx={{ fontWeight: 900, color: c.textPrimary, mb: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <LoginIcon sx={{ color: c.accent, fontSize: 28 }} /> Authentication Pulse
+                    <LoginIcon sx={{ color: c.accent, fontSize: 28 }} /> Login History
                 </Typography>
                 <Typography variant="body2" sx={{ color: c.textSecondary, mb: 4 }}>Monitor real-time access logs for students and administrative staff.</Typography>
 

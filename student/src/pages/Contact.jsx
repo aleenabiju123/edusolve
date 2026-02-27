@@ -11,7 +11,9 @@ import {
     Stack,
     Alert,
     Snackbar,
-    IconButton
+    IconButton,
+    CircularProgress,
+    MenuItem
 } from '@mui/material';
 import {
     Email as EmailIcon,
@@ -21,6 +23,7 @@ import {
     Chat as ChatIcon
 } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
 
 export default function Contact() {
     const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -45,19 +48,31 @@ export default function Contact() {
         name: '',
         email: '',
         subject: '',
-        message: ''
+        message: '',
+        feedbackType: 'Feedback'
     });
     const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Feedback submitted:', formData);
-        setSubmitted(true);
-        setFormData({ name: '', email: '', subject: '', message: '' });
+        setLoading(true);
+        setError('');
+
+        try {
+            const response = await axios.post('http://localhost:2000/api/feedback/submit', formData);
+            setSubmitted(true);
+            setFormData({ name: '', email: '', subject: '', message: '', feedbackType: 'Feedback' });
+        } catch (err) {
+            setError(err.response?.data?.message || 'Error submitting feedback');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -171,7 +186,27 @@ export default function Contact() {
                                         }}
                                     />
                                 </Grid>
-                                <Grid size={{ xs: 12 }}>
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <TextField
+                                        fullWidth
+                                        select
+                                        label="Feedback Type"
+                                        name="feedbackType"
+                                        value={formData.feedbackType}
+                                        onChange={handleChange}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': { borderRadius: 3, color: colors.text, '& fieldset': { borderColor: colors.border } },
+                                            '& .MuiInputLabel-root': { color: colors.textSecondary }
+                                        }}
+                                    >
+                                        <MenuItem value="Feedback">Feedback</MenuItem>
+                                        <MenuItem value="Grievance">Grievance</MenuItem>
+                                        <MenuItem value="Suggestion">Suggestion</MenuItem>
+                                        <MenuItem value="Complaint">Complaint</MenuItem>
+                                        <MenuItem value="Other">Other</MenuItem>
+                                    </TextField>
+                                </Grid>
+                                <Grid size={{ xs: 12, sm: 6 }}>
                                     <TextField
                                         fullWidth
                                         label="Subject"
@@ -201,12 +236,18 @@ export default function Contact() {
                                         }}
                                     />
                                 </Grid>
+                                {error && (
+                                    <Grid size={{ xs: 12 }}>
+                                        <Alert severity="error">{error}</Alert>
+                                    </Grid>
+                                )}
                                 <Grid size={{ xs: 12 }}>
                                     <Button
                                         type="submit"
                                         variant="contained"
                                         size="large"
-                                        endIcon={<SendIcon />}
+                                        disabled={loading}
+                                        endIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
                                         sx={{
                                             py: 2,
                                             px: 6,

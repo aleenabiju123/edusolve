@@ -82,8 +82,10 @@ mongoose.connect(process.env.mongodb_url, {
 // Routes
 const userRoutes = require('./Route/Userroute');
 const complaintRoutes = require('./Route/Complaintroute');
+const feedbackRoutes = require('./Route/Feedbackroute');
 app.use('/api/users', userRoutes);
 app.use('/api/complaints', complaintRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Default route
 app.get('/', (req, res) => {
